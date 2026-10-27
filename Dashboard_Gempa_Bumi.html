@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Gempa Bumi | Data Simulasi</title>
+<style>
+:root{--navy:#17324d;--blue:#247ba0;--teal:#2a9d8f;--orange:#f4a261;--red:#e76f51;--ink:#1d2939;--muted:#667085;--line:#e5eaf0;--bg:#f4f7fb;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(120deg,#17324d,#247ba0);color:white;padding:28px clamp(16px,4vw,48px) 25px}
+.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:800;opacity:.8}
+h1{font-size:clamp(24px,3vw,34px);margin:8px 0}header p{margin:0;color:#e5f3fa;max-width:800px;line-height:1.5}
+.wrap{max-width:1450px;margin:auto;padding:22px clamp(12px,3vw,36px) 40px}
+.notice{background:#fff7e8;border:1px solid #f3d49a;color:#7a4b00;padding:12px 15px;border-radius:12px;font-size:13px;margin-bottom:18px}
+.filters{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px;background:white;border:1px solid var(--line);padding:16px;border-radius:16px;margin-bottom:16px;box-shadow:0 4px 16px #17324d08}
+label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
+input,select{width:100%;border:1px solid #d7dee8;border-radius:9px;padding:10px 11px;font:inherit;color:var(--ink);background:white;min-height:40px}
+button{border:0;border-radius:9px;padding:10px 13px;font-weight:750;cursor:pointer;background:var(--navy);color:white;min-height:40px}
+button.secondary{background:#eaf0f6;color:var(--navy)}button:hover{filter:brightness(.97)}
+.actions{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}
+.kpi,.panel{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 16px #17324d08}
+.kpi{padding:18px;position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;right:-15px;top:-20px;width:75px;height:75px;border-radius:50%;background:#247ba011}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .value{font-size:28px;font-weight:850;margin-top:8px;letter-spacing:-.03em}.kpi .sub{font-size:11px;color:var(--muted);margin-top:5px}
+.charts{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-bottom:16px}
+.panel{padding:18px;min-width:0}.panel h2{font-size:16px;margin:0 0 4px}.panel .desc{font-size:12px;color:var(--muted);margin:0 0 14px}
+canvas{width:100%;height:260px;display:block}
+.tablehead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.tablehead h2{margin:0}
+.tablebox{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}th{background:#f1f5f9;color:#526174;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}
+th,td{padding:11px 12px;border-bottom:1px solid #edf0f4}tbody tr:hover{background:#f7fafc}.pill{display:inline-block;border-radius:99px;padding:4px 8px;font-size:11px;font-weight:800}.small{background:#e8f4ff;color:#17619b}.medium{background:#e5f6f2;color:#147d70}.strong{background:#fff0df;color:#a9570a}.verystrong{background:#ffe8e4;color:#b93827}
+.footerrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;color:var(--muted);font-size:12px}.pager{display:flex;gap:6px}.pager button{min-height:32px;padding:6px 10px}
+footer{padding:22px;text-align:center;color:var(--muted);font-size:12px}
+@media(max-width:1000px){.filters{grid-template-columns:repeat(3,1fr)}.charts{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.filters{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:1fr 1fr}.kpi{padding:13px}.kpi .value{font-size:23px}.panel{padding:13px}canvas{height:230px}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">Pusat pemantauan · dashboard interaktif</div><h1>Dashboard Gempa Bumi Indonesia</h1><p>Ringkasan magnitudo, kedalaman, tren waktu, dan sebaran wilayah dari dataset latihan berisi 100 catatan gempa simulasi.</p></header>
+<main class="wrap">
+<div class="notice"><strong>Catatan penting:</strong> seluruh 100 baris merupakan data contoh/simulasi, bukan data resmi BMKG dan bukan untuk pengambilan keputusan kebencanaan.</div>
+<section class="filters">
+<div><label for="region">Wilayah</label><select id="region"><option value="">Semua wilayah</option></select></div>
+<div><label for="category">Kategori magnitudo</label><select id="category"><option value="">Semua kategori</option><option>Kecil</option><option>Ringan–Sedang</option><option>Sedang–Kuat</option><option>Kuat</option></select></div>
+<div><label for="from">Tanggal mulai</label><input type="date" id="from"></div>
+<div><label for="to">Tanggal akhir</label><input type="date" id="to"></div>
+<div><label for="search">Cari data</label><input id="search" type="search" placeholder="ID, wilayah, kategori…"></div>
+<div class="actions"><button id="reset">Reset filter</button><button class="secondary" id="csv">Unduh CSV</button></div>
+</section>
+<section class="kpis">
+<div class="kpi"><div class="label">Jumlah kejadian</div><div class="value" id="count">—</div><div class="sub">Sesuai filter aktif</div></div>
+<div class="kpi"><div class="label">Magnitudo rata-rata</div><div class="value" id="avg">—</div><div class="sub">Skala magnitudo</div></div>
+<div class="kpi"><div class="label">Magnitudo tertinggi</div><div class="value" id="max">—</div><div class="sub" id="maxloc">—</div></div>
+<div class="kpi"><div class="label">Kedalaman rata-rata</div><div class="value" id="depth">—</div><div class="sub">Kilometer (km)</div></div>
+</section>
+<section class="charts">
+<div class="panel"><h2>Jumlah kejadian per bulan</h2><p class="desc">Distribusi catatan menurut bulan pada data yang difilter.</p><canvas id="monthly" aria-label="Grafik jumlah gempa per bulan"></canvas></div>
+<div class="panel"><h2>Komposisi magnitudo</h2><p class="desc">Jumlah catatan di setiap kategori magnitudo.</p><canvas id="categories" aria-label="Grafik kategori magnitudo"></canvas></div>
+<div class="panel"><h2>Magnitudo dan kedalaman</h2><p class="desc">Setiap titik mewakili satu catatan; kedalaman ditampilkan dalam km.</p><canvas id="scatter" aria-label="Grafik magnitudo terhadap kedalaman"></canvas></div>
+<div class="panel"><h2>Wilayah dengan catatan terbanyak</h2><p class="desc">Lima wilayah teratas di antara data yang ditampilkan.</p><canvas id="regions" aria-label="Grafik wilayah"></canvas></div>
+</section>
+<section class="panel">
+<div class="tablehead"><div><h2>Tabel data gempa</h2><div class="desc" style="margin:5px 0 0">Klik judul kolom untuk mengurutkan data.</div></div><div style="font-size:12px;color:var(--muted)">Baris per halaman: <select id="pageSize" style="width:85px;display:inline-block;padding:7px"><option>10</option><option>25</option><option>50</option><option>100</option></select></div></div>
+<div class="tablebox"><table><thead><tr>
+<th data-sort="id">ID Gempa ↕</th><th data-sort="date">Tanggal ↕</th><th>Waktu</th><th data-sort="region">Wilayah ↕</th><th>Lintang</th><th>Bujur</th><th data-sort="mag">Magnitudo ↕</th><th data-sort="depth">Kedalaman ↕</th><th>Kategori</th>
+</tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="footerrow"><span id="range">—</span><div class="pager"><button class="secondary" id="prev">Sebelumnya</button><button class="secondary" id="next">Berikutnya</button></div></div>
+</section>
+</main><footer>Dashboard latihan mandiri · Data simulasi · Dibuat untuk pembelajaran visualisasi data</footer>
+<script>
+const DATA = [["EQ2025042", "2025-01-05", "21:52:35", "Aceh", 4.4072, 97.5563, 3.4, 174, "Ringan–Sedang"], ["EQ2025085", "2025-01-07", "13:52:31", "Sumatera Barat", -0.4288, 101.0574, 2.5, 97, "Kecil"], ["EQ2025080", "2025-01-11", "19:09:15", "Papua", -5.0712, 139.3955, 2.6, 176, "Kecil"], ["EQ2025050", "2025-01-13", "05:47:59", "Nusa Tenggara Timur", -8.8955, 124.2281, 3.6, 110, "Ringan–Sedang"], ["EQ2025001", "2025-01-13", "23:17:15", "Sulawesi Selatan", -5.295, 120.3813, 3.1, 193, "Ringan–Sedang"], ["EQ2025075", "2025-01-15", "12:21:42", "Bali", -7.9516, 115.881, 5.3, 108, "Sedang–Kuat"], ["EQ2025048", "2025-01-21", "11:13:43", "Sumatera Barat", -0.9926, 100.5198, 3.2, 31, "Ringan–Sedang"], ["EQ2025098", "2025-01-27", "08:55:30", "Maluku", -3.3986, 128.6482, 2.5, 21, "Kecil"], ["EQ2025035", "2025-01-30", "01:37:30", "Sumatera Barat", -1.3851, 101.3216, 4.4, 140, "Ringan–Sedang"], ["EQ2025029", "2025-02-01", "12:46:21", "Sulawesi Selatan", -5.0027, 119.2804, 5.8, 32, "Sedang–Kuat"], ["EQ2025026", "2025-02-06", "16:15:17", "Sumatera Barat", -0.6215, 100.8467, 5.2, 59, "Sedang–Kuat"], ["EQ2025064", "2025-02-07", "14:26:56", "Halmahera", 1.7367, 127.768, 5.0, 54, "Sedang–Kuat"], ["EQ2025040", "2025-02-07", "17:13:32", "Sulawesi Selatan", -3.7383, 120.6585, 3.3, 94, "Ringan–Sedang"], ["EQ2025002", "2025-02-14", "18:27:02", "Aceh", 4.6653, 97.004, 2.1, 60, "Kecil"], ["EQ2025031", "2025-02-20", "01:41:34", "Aceh", 6.0527, 97.4974, 6.0, 28, "Kuat"], ["EQ2025008", "2025-02-21", "12:17:29", "Papua", -4.9747, 138.2105, 5.1, 98, "Sedang–Kuat"], ["EQ2025055", "2025-02-25", "19:27:22", "Sulawesi Tengah", -1.5272, 120.9685, 5.5, 85, "Sedang–Kuat"], ["EQ2025043", "2025-03-01", "03:47:35", "Jawa Barat", -6.9903, 108.1352, 2.7, 77, "Kecil"], ["EQ2025084", "2025-03-03", "18:50:02", "Halmahera", 1.623, 127.1379, 3.7, 114, "Ringan–Sedang"], ["EQ2025094", "2025-03-03", "23:34:48", "Sumatera Barat", -1.2672, 100.3684, 5.3, 54, "Sedang–Kuat"], ["EQ2025006", "2025-03-05", "12:05:35", "Aceh", 5.437, 97.5234, 3.4, 165, "Ringan–Sedang"], ["EQ2025022", "2025-03-07", "21:30:35", "Maluku", -2.4551, 129.3463, 2.8, 140, "Kecil"], ["EQ2025077", "2025-03-11", "14:11:03", "Nusa Tenggara Timur", -10.0767, 123.1537, 3.2, 88, "Ringan–Sedang"], ["EQ2025071", "2025-03-12", "04:14:24", "Sulawesi Selatan", -5.0721, 119.7297, 5.3, 185, "Sedang–Kuat"], ["EQ2025030", "2025-03-13", "13:11:17", "Bali", -8.5137, 115.9227, 4.2, 24, "Ringan–Sedang"], ["EQ2025099", "2025-03-19", "04:51:36", "Sulawesi Tengah", -0.4122, 119.2369, 6.6, 26, "Kuat"], ["EQ2025019", "2025-03-20", "11:48:10", "Papua", -3.4551, 139.337, 4.6, 204, "Ringan–Sedang"], ["EQ2025034", "2025-03-21", "06:18:13", "Bali", -7.9285, 114.3219, 6.6, 153, "Kuat"], ["EQ2025004", "2025-03-23", "22:27:21", "Sulawesi Tengah", -0.4856, 119.6732, 3.3, 60, "Ringan–Sedang"], ["EQ2025046", "2025-03-24", "23:28:35", "Jawa Barat", -8.1807, 106.8505, 5.4, 148, "Sedang–Kuat"], ["EQ2025018", "2025-04-02", "16:58:06", "Aceh", 5.8833, 96.8153, 6.2, 81, "Kuat"], ["EQ2025036", "2025-04-06", "02:38:04", "Sulawesi Selatan", -4.6924, 120.7832, 5.2, 65, "Sedang–Kuat"], ["EQ2025007", "2025-04-09", "22:04:02", "Halmahera", 0.8788, 127.1596, 5.2, 202, "Sedang–Kuat"], ["EQ2025083", "2025-04-12", "02:37:44", "Nusa Tenggara Timur", -10.2962, 124.045, 6.0, 67, "Kuat"], ["EQ2025003", "2025-04-12", "22:41:44", "Aceh", 5.0984, 96.3564, 4.6, 61, "Ringan–Sedang"], ["EQ2025012", "2025-04-19", "20:31:25", "Sumatera Barat", -0.7823, 99.9298, 6.2, 169, "Kuat"], ["EQ2025025", "2025-04-23", "00:04:45", "Halmahera", 0.4348, 127.0628, 5.0, 63, "Sedang–Kuat"], ["EQ2025066", "2025-04-23", "05:51:44", "Nusa Tenggara Timur", -9.3852, 124.3349, 4.5, 17, "Ringan–Sedang"], ["EQ2025079", "2025-04-25", "20:04:49", "Sumatera Barat", -0.1915, 101.2992, 6.6, 15, "Kuat"], ["EQ2025011", "2025-04-28", "01:51:20", "Sulawesi Tengah", -1.978, 120.8858, 3.9, 21, "Ringan–Sedang"], ["EQ2025065", "2025-05-05", "04:41:44", "Nusa Tenggara Timur", -8.7791, 124.2709, 2.0, 197, "Kecil"], ["EQ2025037", "2025-05-07", "18:38:02", "Halmahera", 1.6147, 128.1305, 5.0, 112, "Sedang–Kuat"], ["EQ2025038", "2025-05-14", "06:42:45", "Sumatera Barat", -0.9084, 100.7434, 3.5, 72, "Ringan–Sedang"], ["EQ2025033", "2025-05-16", "14:18:27", "Nusa Tenggara Timur", -8.5092, 123.6115, 5.3, 192, "Sedang–Kuat"], ["EQ2025051", "2025-05-17", "05:50:44", "Papua", -3.5828, 137.9449, 2.5, 14, "Kecil"], ["EQ2025070", "2025-05-21", "14:04:45", "Papua", -4.6283, 139.2861, 3.4, 74, "Ringan–Sedang"], ["EQ2025053", "2025-05-23", "02:49:17", "Sumatera Barat", -0.9006, 101.3623, 3.7, 135, "Ringan–Sedang"], ["EQ2025078", "2025-05-23", "13:16:53", "Nusa Tenggara Timur", -9.002, 122.6042, 2.4, 9, "Kecil"], ["EQ2025088", "2025-05-23", "14:15:48", "Sulawesi Selatan", -4.1636, 119.5728, 4.2, 161, "Ringan–Sedang"], ["EQ2025041", "2025-05-26", "05:28:53", "Sumatera Barat", -0.4766, 101.3745, 4.6, 82, "Ringan–Sedang"], ["EQ2025017", "2025-05-31", "13:10:29", "Sulawesi Selatan", -3.7483, 119.4268, 2.0, 189, "Kecil"], ["EQ2025082", "2025-06-09", "03:37:01", "Maluku", -2.8453, 130.4163, 6.5, 152, "Kuat"], ["EQ2025020", "2025-06-15", "15:01:07", "Halmahera", 1.9135, 127.4789, 6.5, 217, "Kuat"], ["EQ2025089", "2025-06-16", "05:31:13", "Bali", -8.7193, 115.9606, 3.7, 71, "Ringan–Sedang"], ["EQ2025054", "2025-06-19", "00:07:56", "Aceh", 5.3612, 97.7671, 6.7, 50, "Kuat"], ["EQ2025093", "2025-06-19", "11:44:29", "Aceh", 4.6611, 97.2426, 3.3, 69, "Ringan–Sedang"], ["EQ2025052", "2025-06-29", "09:52:50", "Bali", -9.3527, 114.5863, 6.2, 62, "Kuat"], ["EQ2025028", "2025-07-01", "13:26:29", "Nusa Tenggara Timur", -9.1533, 124.4683, 6.1, 18, "Kuat"], ["EQ2025005", "2025-07-14", "03:22:54", "Sulawesi Selatan", -3.8857, 120.3595, 3.7, 72, "Ringan–Sedang"], ["EQ2025010", "2025-07-14", "08:59:40", "Bali", -8.0308, 115.8857, 5.3, 61, "Sedang–Kuat"], ["EQ2025056", "2025-07-17", "18:12:16", "Sulawesi Selatan", -5.4966, 120.7512, 2.2, 116, "Kecil"], ["EQ2025059", "2025-07-26", "22:18:35", "Sumatera Barat", -0.3701, 100.1583, 2.6, 112, "Kecil"], ["EQ2025032", "2025-07-28", "15:30:13", "Maluku", -3.8707, 128.5043, 6.2, 20, "Kuat"], ["EQ2025086", "2025-08-11", "05:46:33", "Maluku", -2.9682, 130.3392, 6.6, 74, "Kuat"], ["EQ2025069", "2025-08-19", "08:48:15", "Bali", -7.8684, 115.2426, 6.0, 75, "Kuat"], ["EQ2025067", "2025-08-22", "04:51:29", "Sulawesi Selatan", -4.3091, 120.8001, 5.2, 148, "Sedang–Kuat"], ["EQ2025039", "2025-08-23", "10:59:48", "Jawa Barat", -7.2834, 108.6969, 6.5, 7, "Kuat"], ["EQ2025087", "2025-08-27", "13:52:46", "Bali", -7.6966, 115.8615, 4.8, 87, "Ringan–Sedang"], ["EQ2025014", "2025-09-18", "15:05:48", "Maluku", -3.8943, 128.82, 2.2, 33, "Kecil"], ["EQ2025024", "2025-09-22", "14:07:15", "Bali", -9.3579, 115.3078, 3.1, 91, "Ringan–Sedang"], ["EQ2025095", "2025-09-26", "19:18:06", "Halmahera", 0.755, 127.3589, 6.0, 80, "Kuat"], ["EQ2025074", "2025-10-03", "23:47:34", "Nusa Tenggara Timur", -9.5235, 123.0459, 5.8, 61, "Sedang–Kuat"], ["EQ2025023", "2025-10-04", "23:44:12", "Papua", -3.3097, 138.7998, 5.4, 107, "Sedang–Kuat"], ["EQ2025072", "2025-10-05", "14:26:03", "Sumatera Barat", -0.921, 100.9396, 3.0, 112, "Ringan–Sedang"], ["EQ2025047", "2025-10-07", "01:53:23", "Maluku", -3.3404, 128.5837, 4.8, 42, "Ringan–Sedang"], ["EQ2025090", "2025-10-12", "00:33:12", "Jawa Barat", -7.3871, 107.8104, 2.4, 189, "Kecil"], ["EQ2025013", "2025-10-15", "17:16:47", "Papua", -4.5012, 137.9386, 4.8, 154, "Ringan–Sedang"], ["EQ2025021", "2025-10-18", "02:05:46", "Papua", -3.344, 138.5654, 4.3, 22, "Ringan–Sedang"], ["EQ2025073", "2025-10-22", "12:30:00", "Sulawesi Tengah", -0.893, 120.7069, 6.5, 81, "Kuat"], ["EQ2025027", "2025-10-23", "15:15:50", "Halmahera", 0.6808, 127.1939, 4.3, 109, "Ringan–Sedang"], ["EQ2025015", "2025-11-02", "02:24:24", "Nusa Tenggara Timur", -9.4418, 124.4422, 4.9, 124, "Ringan–Sedang"], ["EQ2025100", "2025-11-07", "19:50:39", "Nusa Tenggara Timur", -9.7392, 124.317, 3.1, 138, "Ringan–Sedang"], ["EQ2025061", "2025-11-07", "20:20:29", "Halmahera", 0.7274, 127.9464, 4.1, 177, "Ringan–Sedang"], ["EQ2025068", "2025-11-10", "23:57:32", "Bali", -8.5082, 114.5183, 4.0, 145, "Ringan–Sedang"], ["EQ2025060", "2025-11-12", "18:19:25", "Maluku", -3.5923, 128.9204, 4.6, 5, "Ringan–Sedang"], ["EQ2025049", "2025-11-14", "23:09:59", "Nusa Tenggara Timur", -8.5476, 124.1215, 6.5, 46, "Kuat"], ["EQ2025076", "2025-11-15", "17:01:58", "Maluku", -2.874, 128.6679, 3.9, 149, "Ringan–Sedang"], ["EQ2025058", "2025-11-16", "10:42:54", "Sumatera Barat", -0.6858, 100.7338, 2.6, 81, "Kecil"], ["EQ2025045", "2025-11-21", "13:53:17", "Sulawesi Selatan", -3.9578, 120.1742, 2.2, 90, "Kecil"], ["EQ2025097", "2025-11-23", "15:06:55", "Maluku", -3.2612, 129.3809, 2.1, 77, "Kecil"], ["EQ2025062", "2025-12-04", "02:18:32", "Maluku", -3.5296, 130.1368, 5.2, 163, "Sedang–Kuat"], ["EQ2025063", "2025-12-11", "09:14:51", "Papua", -5.2076, 139.4679, 3.0, 11, "Ringan–Sedang"], ["EQ2025016", "2025-12-15", "23:07:43", "Sulawesi Tengah", -1.8663, 120.2819, 6.2, 197, "Kuat"], ["EQ2025044", "2025-12-18", "20:54:16", "Papua", -3.4893, 139.1922, 4.4, 69, "Ringan–Sedang"], ["EQ2025057", "2025-12-18", "23:47:47", "Aceh", 5.0626, 97.6977, 5.2, 98, "Sedang–Kuat"], ["EQ2025091", "2025-12-20", "15:41:45", "Papua", -5.2655, 138.0885, 4.4, 207, "Ringan–Sedang"], ["EQ2025092", "2025-12-21", "07:19:42", "Nusa Tenggara Timur", -9.3931, 123.1875, 4.8, 126, "Ringan–Sedang"], ["EQ2025081", "2025-12-25", "08:49:23", "Bali", -7.4725, 115.6367, 2.8, 160, "Kecil"], ["EQ2025009", "2025-12-26", "21:41:04", "Jawa Barat", -7.1317, 107.1896, 4.9, 48, "Ringan–Sedang"], ["EQ2025096", "2025-12-29", "17:08:17", "Sulawesi Tengah", -1.2933, 120.3948, 2.2, 18, "Kecil"]];
+const $ = id => document.getElementById(id);
+let filtered = [...DATA], page = 1, sortKey = "date", sortDir = 1;
+const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const cats = ["Kecil","Ringan–Sedang","Sedang–Kuat","Kuat"];
+const fmt = n => Number(n).toLocaleString("id-ID",{maximumFractionDigits:1});
+function init(){
+  [...new Set(DATA.map(d=>d[3]))].sort().forEach(v=>{let o=document.createElement("option");o.value=v;o.textContent=v;$("region").appendChild(o)});
+  const dates=DATA.map(d=>d[1]).sort(); $("from").value=dates[0]; $("to").value=dates[dates.length-1];
+  ["region","category","from","to","search","pageSize"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",()=>{page=1;applyFilters()}));
+  $("reset").onclick=()=>{$("region").value="";$("category").value="";$("from").value=DATA.map(d=>d[1]).sort()[0];$("to").value=DATA.map(d=>d[1]).sort().slice(-1)[0];$("search").value="";page=1;applyFilters()};
+  $("prev").onclick=()=>{if(page>1){page--;renderTable()}};
+  $("next").onclick=()=>{if(page<Math.ceil(filtered.length/+$("pageSize").value)){page++;renderTable()}};
+  $("csv").onclick=downloadCSV;
+  document.querySelectorAll("th[data-sort]").forEach(th=>th.style.cursor="pointer");
+  document.querySelectorAll("th[data-sort]").forEach(th=>th.addEventListener("click",()=>{let k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1}filtered.sort(compare);renderTable()}));
+  window.addEventListener("resize",drawAll); applyFilters();
+}
+function applyFilters(){
+ const r=$("region").value,c=$("category").value,f=$("from").value,t=$("to").value,q=$("search").value.toLowerCase().trim();
+ filtered=DATA.filter(d=>(!r||d[3]===r)&&(!c||d[8]===c)&&(!f||d[1]>=f)&&(!t||d[1]<=t)&&(!q||d.join(" ").toLowerCase().includes(q)));
+ filtered.sort(compare);page=1;renderStats();renderTable();drawAll();
+}
+function compare(a,b){let ix={id:0,date:1,region:3,mag:6,depth:7}[sortKey];let x=a[ix],y=b[ix];return (typeof x==="number"?x-y:String(x).localeCompare(String(y),"id"))*sortDir}
+function renderStats(){
+ $("count").textContent=filtered.length;
+ $("avg").textContent=filtered.length?fmt(filtered.reduce((s,d)=>s+d[6],0)/filtered.length):"—";
+ const max=filtered.length?filtered.reduce((a,b)=>a[6]>b[6]?a:b):null;
+ $("max").textContent=max?fmt(max[6]):"—"; $("maxloc").textContent=max?max[3]+" · "+max[1]:"Tidak ada data";
+ $("depth").textContent=filtered.length?fmt(filtered.reduce((s,d)=>s+d[7],0)/filtered.length)+" km":"—";
+}
+function badge(cat){let cls={"Kecil":"small","Ringan–Sedang":"medium","Sedang–Kuat":"strong","Kuat":"verystrong"}[cat]||"small";return `<span class="pill ${cls}">${cat}</span>`}
+function renderTable(){
+ const size=+$("pageSize").value, total=filtered.length, pages=Math.max(1,Math.ceil(total/size));if(page>pages)page=pages;
+ const part=filtered.slice((page-1)*size,page*size);
+ $("tbody").innerHTML=part.map(d=>`<tr><td>${d[0]}</td><td>${d[1]}</td><td>${d[2]}</td><td>${d[3]}</td><td>${Number(d[4]).toFixed(4)}</td><td>${Number(d[5]).toFixed(4)}</td><td><strong>${fmt(d[6])}</strong></td><td>${d[7]} km</td><td>${badge(d[8])}</td></tr>`).join("")||'<tr><td colspan="9" style="text-align:center;padding:28px">Tidak ada data yang cocok dengan filter.</td></tr>';
+ $("range").textContent=total?`Menampilkan ${(page-1)*size+1}–${Math.min(page*size,total)} dari ${total} catatan`:"0 catatan";
+ $("prev").disabled=page<=1;$("next").disabled=page>=pages;
+ $("prev").style.opacity=$("prev").disabled?".45":"1";$("next").style.opacity=$("next").disabled?".45":"1";
+}
+function setupCanvas(id){const c=$(id),rect=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1;c.width=Math.max(1,rect.width*dpr);c.height=Math.max(1,rect.height*dpr);const x=c.getContext("2d");x.scale(dpr,dpr);return {c,x,w:rect.width,h:rect.height}}
+function drawMonthly(){
+ const {x,w,h}=setupCanvas("monthly"), pad={l:36,r:12,t:12,b:32}, pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+ const vals=Array(12).fill(0);filtered.forEach(d=>vals[+d[1].slice(5,7)-1]++);
+ axes(x,w,h,pad,Math.max(5,Math.ceil(Math.max(...vals,1)/5)*5));const bw=pw/12*.58;
+ vals.forEach((v,i)=>{let bh=v/Math.max(5,Math.ceil(Math.max(...vals,1)/5)*5)*ph,xx=pad.l+(i+.5)*pw/12;x.fillStyle="#247ba0";x.fillRect(xx-bw/2,pad.t+ph-bh,bw,bh);x.fillStyle="#667085";x.font="10px Arial";x.textAlign="center";x.fillText(months[i],xx,h-10);if(v){x.fillStyle="#17324d";x.fillText(v,xx,pad.t+ph-bh-4)}});
+}
+function axes(x,w,h,p,maxv){x.clearRect(0,0,w,h);let pw=w-p.l-p.r,ph=h-p.t-p.b;x.strokeStyle="#e8edf3";x.fillStyle="#667085";x.font="10px Arial";x.textAlign="right";for(let i=0;i<=4;i++){let yy=p.t+ph-i*ph/4;x.beginPath();x.moveTo(p.l,yy);x.lineTo(w-p.r,yy);x.stroke();x.fillText(Math.round(maxv*i/4),p.l-7,yy+3)}}
+function drawCategories(){
+ const {x,w,h}=setupCanvas("categories"), counts=cats.map(c=>filtered.filter(d=>d[8]===c).length), colors=["#247ba0","#2a9d8f","#f4a261","#e76f51"],total=counts.reduce((a,b)=>a+b,0);
+ let cx=w*.32,cy=h*.48,r=Math.min(w*.22,h*.34),inner=r*.57,start=-Math.PI/2;
+ counts.forEach((v,i)=>{let end=start+(total?v/total:0)*Math.PI*2;x.beginPath();x.moveTo(cx,cy);x.arc(cx,cy,r,start,end);x.closePath();x.fillStyle=colors[i];x.fill();start=end});
+ x.beginPath();x.arc(cx,cy,inner,0,Math.PI*2);x.fillStyle="#fff";x.fill();x.fillStyle="#17324d";x.textAlign="center";x.font="bold 21px Arial";x.fillText(total,cx,cy+3);x.font="10px Arial";x.fillStyle="#667085";x.fillText("catatan",cx,cy+18);
+ let lx=Math.min(w*.58,w-150),ly=cy-(cats.length-1)*24/2;
+ cats.forEach((c,i)=>{x.fillStyle=colors[i];x.fillRect(lx,ly+i*24,10,10);x.fillStyle="#344054";x.textAlign="left";x.font="11px Arial";x.fillText(c,lx+16,ly+9+i*24);x.textAlign="right";x.fillStyle="#667085";x.fillText(`${counts[i]} (${total?Math.round(counts[i]/total*100):0}%)`,w-8,ly+9+i*24)});
+}
+function drawScatter(){
+ const {x,w,h}=setupCanvas("scatter"),p={l:38,r:14,t:12,b:32},pw=w-p.l-p.r,ph=h-p.t-p.b;axes(x,w,h,p,250);
+ x.fillStyle="#667085";x.font="10px Arial";x.textAlign="center";x.fillText("Magnitudo",p.l+pw/2,h-7);
+ for(let i=0;i<=4;i++){x.fillText((2+i*1.2).toFixed(1),p.l+i*pw/4,h-18)}
+ x.save();x.translate(12,p.t+ph/2);x.rotate(-Math.PI/2);x.fillText("Kedalaman (km)",0,0);x.restore();
+ filtered.forEach(d=>{let xx=p.l+(d[6]-2)/4.8*pw, yy=p.t+d[7]/250*ph;x.beginPath();x.arc(xx,yy,3.5,0,Math.PI*2);x.fillStyle=d[6]>=6?"#e76f51":d[6]>=5?"#f4a261":"#247ba0";x.globalAlpha=.78;x.fill();x.globalAlpha=1});
+}
+function drawRegions(){
+ const {x,w,h}=setupCanvas("regions"),counts={};filtered.forEach(d=>counts[d[3]]=(counts[d[3]]||0)+1);
+ const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5),p={l:130,r:22,t:15,b:14},pw=w-p.l-p.r,row=(h-p.t-p.b)/5,max=Math.max(1,...top.map(d=>d[1]));
+ x.clearRect(0,0,w,h);top.forEach(([name,val],i)=>{let yy=p.t+i*row;x.fillStyle="#667085";x.font="11px Arial";x.textAlign="right";x.fillText(name,p.l-9,yy+row*.58);x.fillStyle="#edf2f7";x.fillRect(p.l,yy+row*.22,pw,row*.48);x.fillStyle="#2a9d8f";x.fillRect(p.l,yy+row*.22,pw*val/max,row*.48);x.fillStyle="#17324d";x.textAlign="left";x.font="bold 10px Arial";x.fillText(val,p.l+pw*val/max+5,yy+row*.58)});
+}
+function drawAll(){drawMonthly();drawCategories();drawScatter();drawRegions()}
+function downloadCSV(){
+ const header=["ID Gempa","Tanggal","Waktu","Wilayah","Lintang (°)","Bujur (°)","Magnitudo","Kedalaman (km)","Kategori Magnitudo"];
+ const lines=[header,...filtered].map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+ const blob=new Blob(["\ufeff"+lines],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Data_Gempa_Hasil_Filter.csv";a.click();URL.revokeObjectURL(url);
+}
+init();
+</script>
+</body></html>
